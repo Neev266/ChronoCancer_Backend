@@ -2,7 +2,6 @@ Pillow
 gradio
 ollama
 streamlit
-# UI
 
 # LangChain ecosystem
 langchain
