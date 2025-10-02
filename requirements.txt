@@ -1,11 +1,10 @@
-pytesseract
+
 Pillow
 gradio
 ollama
 streamlit
 # UI
-streamlit
-Pillow
+
 
 # LangChain ecosystem
 langchain

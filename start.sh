@@ -6,5 +6,5 @@ if [ -f requirements.txt ]; then
     pip install -r requirements.txt
 fi
 
-# Start the app
-uvicorn chrono_cancer_backend.main:app --host 0.0.0.0 --port 8080
+# Start Streamlit in headless mode for Railway
+streamlit run main.py --server.port 8080 --server.address 0.0.0.0 --server.headless true
