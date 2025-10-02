@@ -3,3 +3,22 @@ Pillow
 gradio
 ollama
 streamlit
+# UI
+streamlit
+Pillow
+
+# LangChain ecosystem
+langchain
+langchain-core
+langgraph
+langchain-ollama
+
+# OCR + PDF
+pytesseract
+pdfplumber
+pdf2image
+
+# Utils
+regex
+logging
+typing-extensions
