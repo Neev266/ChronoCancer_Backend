@@ -1,16 +1,12 @@
 #!/bin/bash
+set -e
 
-#!/bin/bash
-
-# Install system dependencies first
+# Install system dependencies
 apt-get update && apt-get install -y tesseract-ocr poppler-utils
 
 # Upgrade pip and install Python dependencies
 pip install --upgrade pip
-if [ -f requirements.txt ]; then
-    pip install -r requirements.txt
-fi
+pip install -r requirements.txt
 
-# Start Streamlit in headless mode
-streamlit run main.py --server.port 8080 --server.address 0.0.0.0 --server.headless true
-
+# Start Streamlit
+exec streamlit run main.py --server.port 8080 --server.address 0.0.0.0 --server.headless true
