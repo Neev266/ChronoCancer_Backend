@@ -1,10 +1,8 @@
-
 Pillow
 gradio
 ollama
 streamlit
 # UI
-
 
 # LangChain ecosystem
 langchain
@@ -19,5 +17,4 @@ pdf2image
 
 # Utils
 regex
-logging
 typing-extensions
