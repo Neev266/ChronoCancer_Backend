@@ -1,11 +1,10 @@
-# main.py
+# main.py (Test Version for Local + Railway)
 import streamlit as st
 from PIL import Image, ImageFilter
 from langgraph.graph import StateGraph, END
 from typing import TypedDict, Any
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain_ollama import OllamaLLM
 import re
 import logging
 import pytesseract
@@ -14,6 +13,13 @@ from pdf2image import convert_from_bytes
 from io import BytesIO
 import platform
 import os
+
+# Optional: Ollama LLM only if running locally
+try:
+    from langchain_ollama import OllamaLLM
+    ollama_available = True
+except ImportError:
+    ollama_available = False
 
 # ------------------------
 # Logging
@@ -28,7 +34,7 @@ if platform.system() == "Windows":
     pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
     POPPLER_PATH = r"D:\poppler-25.07.0\Library\bin"
 else:
-    # Linux/Docker
+    # Linux / Docker
     pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
     POPPLER_PATH = "/usr/bin"
 
@@ -42,15 +48,17 @@ class MedicalAgentState(TypedDict):
     error: str
 
 # ------------------------
-# Initialize LLM
+# Initialize LLM only if available and local
 # ------------------------
-llm_cpu = OllamaLLM(model="phi3:3.8b-mini-4k-instruct-q4_K_M", num_gpu=0)
+USE_LLM = ollama_available and platform.system() == "Windows"
+if USE_LLM:
+    llm_cpu = OllamaLLM(model="phi3:3.8b-mini-4k-instruct-q4_K_M", num_gpu=0)
 
 prompt_template = ChatPromptTemplate.from_template("""
 You are a medical expert AI. Below is the extracted text from a medical test report. 
 Analyze the text, interpret the results, and provide a clear, concise explanation of the health status for a non-medical user. 
 Highlight any abnormal results, explain their potential implications, and suggest next steps (e.g., consult a doctor). 
-If any information is unclear or incomplete, note it and avoid making assumptions. define the origin of each terms completely without more details.
+If any information is unclear or incomplete, note it and avoid making assumptions. define the origin of each term completely without more details.
 
 Extracted Text:
 {extracted_text}
@@ -140,20 +148,22 @@ def extract_text_from_image(state: dict) -> dict:
 # ------------------------
 # LLM node
 # ------------------------
-chain = prompt_template | llm_cpu | StrOutputParser()
-
-def process_with_llm(state: MedicalAgentState) -> MedicalAgentState:
-    if state.get("error"):
+if USE_LLM:
+    chain = prompt_template | llm_cpu | StrOutputParser()
+    def process_with_llm(state: MedicalAgentState) -> MedicalAgentState:
+        if state.get("error"):
+            return state
+        try:
+            response = chain.invoke({"extracted_text": state["extracted_text"]})
+            state["llm_response"] = response
+        except Exception as e:
+            state["error"] = f"LLM processing failed: {str(e)}"
         return state
-    try:
-        logger.info("Processing text with LLM...")
-        response = chain.invoke({"extracted_text": state["extracted_text"]})
-        state["llm_response"] = response
-        logger.info("LLM processing completed")
-    except Exception as e:
-        state["error"] = f"Error during LLM processing: {str(e)}"
-        logger.error(f"LLM processing failed: {str(e)}")
-    return state
+else:
+    # Dummy LLM for Railway / cloud
+    def process_with_llm(state: MedicalAgentState) -> MedicalAgentState:
+        state["llm_response"] = "LLM skipped: only OCR tested (server cannot reach local Ollama)."
+        return state
 
 # ------------------------
 # Build LangGraph workflow
