@@ -10,6 +10,8 @@ import logging
 import pytesseract
 import pdfplumber
 from pdf2image import convert_from_bytes
+import os
+import platform
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -17,9 +19,23 @@ logger = logging.getLogger(__name__)
 
 # Configure Tesseract path (adjust for your system)
 try:
-    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    system_platform = platform.system()
+
+    if system_platform == "Windows":
+        # Windows path
+        tesseract_path = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    else:
+        # Linux path inside Docker/Railway
+        tesseract_path = "/usr/bin/tesseract"
+
+    if not os.path.exists(tesseract_path):
+        raise FileNotFoundError(f"Tesseract not found at {tesseract_path}")
+
+    pytesseract.pytesseract.tesseract_cmd = tesseract_path
+    logger.info(f"Tesseract OCR path set to: {tesseract_path}")
+
 except Exception as e:
-    logger.error("Tesseract path configuration failed")
+    logger.error(f"Tesseract path configuration failed: {e}")
 
 # State definition for LangGraph
 class MedicalAgentState(TypedDict):
