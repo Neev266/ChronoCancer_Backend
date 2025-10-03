@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 # Configure Tesseract path (adjust for your system)
 try:
-    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+    pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 except Exception as e:
     logger.error("Tesseract path configuration failed")
 
